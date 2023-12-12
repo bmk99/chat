@@ -1,0 +1,15 @@
+.hover1:hover{
+    background: rgb(190, 190, 190);
+    cursor: pointer;
+    border-radius: 5px;
+    /* position: fixed; */
+
+}
+.button1{
+    background-color: black;
+    cursor: pointer;
+    border-radius: 5px;
+    padding: 10px;
+    border: none;
+    color: whitesmoke;
+}
