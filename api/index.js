@@ -10,9 +10,16 @@ const authRoute = require("./routes/auth");
 const conversationRoute = require("./routes/conversation")
 const messagesRoute = require("./routes/messages")
 const router = express.Router();
+const cors = require('cors');
+
 const path = require("path");
 
 dotenv.config();
+app.use(cors({
+  origin: 'http://localhost:3000', // Replace with the actual origin of your frontend
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+}));
 
 mongoose.connect(process.env.MONGO_URL)
 .then(() => {
@@ -28,23 +35,6 @@ app.use(express.json());
 app.use(helmet());
 app.use(morgan("common"));
 
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, "public/images");
-//   },
-//   filename: (req, file, cb) => {
-//     cb(null, req.body.name);
-//   },
-// });
-
-// const upload = multer({ storage: storage });
-// app.post("/api/upload", upload.single("file"), (req, res) => {
-//   try {
-//     return res.status(200).json("File uploded successfully");
-//   } catch (error) {
-//     console.error(error);
-//   }
-// });
 
 app.use("/api/auth", authRoute);
 app.use("/api/users", userRoute);

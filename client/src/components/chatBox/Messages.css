@@ -4,6 +4,9 @@
     margin: 10px;    
     align-items: flex-start;
 }
+.header{
+    
+}
 .messages_top{
     display: flex;
     align-items: center;

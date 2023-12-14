@@ -6,7 +6,9 @@ function Messages({message,own}) {
 
   return (
     <div className={own?"messages own": "messages"}>
-        {own ?<>
+    
+      <div className="chatiingBox">
+      {own ?<>
             <div className="messages_top">
 
             <span className="messages_text">
@@ -39,6 +41,8 @@ function Messages({message,own}) {
       </div>
 
         </>}
+      </div>
+        
         
       
     </div>

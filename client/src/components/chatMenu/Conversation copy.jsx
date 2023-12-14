@@ -2,16 +2,17 @@ import React, { useEffect, useState } from "react";
 import "./Conversation.css";
 import axios from "axios";
 
-function Conversation({ conversation, currentUser, handleCurrentChat ,online}) {
+function Conversation({ conversation, currentUser, handleCurrentChat }) {
   const [user, setUser] = useState({ profilePicture: "", username: "" });
   const [loading, setLoading] = useState(true);
-  // const [online,setOnline] = useState(false)
- 
-  //  console.log(user)
+
+  // console.log(user.username)
+  const friend = Object.keys(conversation.members).find(
+    (key) => conversation.members[key] !== currentUser._id
+  );
+  const friendId = conversation.members[friend];
 
   useEffect(() => {
-    const friendId = conversation.members.find((m) => m !== currentUser._id);
-    // chatOnline.find(m=>m.userId === friendId) && setOnline(true) 
     const getUserData = async () => {
       try {
         const res = await axios.get(
@@ -28,8 +29,8 @@ function Conversation({ conversation, currentUser, handleCurrentChat ,online}) {
     getUserData();
 
     // setUser(friendId)
-  }, [conversation, currentUser]);
-// console.log(online)
+  }, [friendId, currentUser]);
+
   return (
     <>
       {loading ? (
@@ -48,26 +49,17 @@ function Conversation({ conversation, currentUser, handleCurrentChat ,online}) {
         //   <span className="conversatoin_name">{user.username}</span>
         // </div>
         <div className="chatOnline">
-         
-        <div className="chatOnline_wrap hover1" onClick={handleCurrentChat}>
+        <div className="chatOnline_wrap">
           <div className="chatOnline_image_container">
-          <img
-            src={
-              user.profilePicture
-                ? user.profilePicture
-                : "https://th.bing.com/th?id=OIP.4siKIW3oZ4kEo0vkEVQ5hgHaLH&w=204&h=306&c=8&rs=1&qlt=90&o=6&dpr=1.5&pid=3.1&rm=2"
-            }
-            alt="nature"
-            className="chatOnline_image"
-          />
-          {/* {online && 
+            <img
+              src="https://th.bing.com/th?id=OIP.4siKIW3oZ4kEo0vkEVQ5hgHaLH&w=204&h=306&c=8&rs=1&qlt=90&o=6&dpr=1.5&pid=3.1&rm=2"
+              className="chatOnline_image"
+              alt=""
+            />
             <div className="chatOnline_badge"></div>
-          } */}
-            <div className="chatOnline_badge"></div>
-
           </div>
   
-          <div className="chatOnline_name">{user.username}</div>
+          <div className="chatOnline_name">Kir</div>
         </div>
       </div>
       )}
