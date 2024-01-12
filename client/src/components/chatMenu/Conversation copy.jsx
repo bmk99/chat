@@ -2,17 +2,20 @@ import React, { useEffect, useState } from "react";
 import "./Conversation.css";
 import axios from "axios";
 
-function Conversation({ conversation, currentUser, handleCurrentChat }) {
-  const [user, setUser] = useState({ profilePicture: "", username: "" });
+function Conversation({ conversation, currentUser, handleCurrentChat ,online}) {
+  const [user, setUser] = useState("");
   const [loading, setLoading] = useState(true);
-
-  // console.log(user.username)
-  const friend = Object.keys(conversation.members).find(
-    (key) => conversation.members[key] !== currentUser._id
-  );
-  const friendId = conversation.members[friend];
+  // const [online,setOnline] = useState(false)
+ 
+  //  console.log(user)
 
   useEffect(() => {
+    
+    const friendId = conversation.members.find((m) => m !== currentUser._id);
+
+    // const friendDetails = conversation.members.find(member => member._id !== currentUser._id);
+    // setUser(friendDetails)
+    // chatOnline.find(m=>m.userId === friendId) && setOnline(true) 
     const getUserData = async () => {
       try {
         const res = await axios.get(
@@ -29,7 +32,9 @@ function Conversation({ conversation, currentUser, handleCurrentChat }) {
     getUserData();
 
     // setUser(friendId)
-  }, [friendId, currentUser]);
+  }, [conversation, currentUser]);
+// console.log(online)
+
 
   return (
     <>
@@ -49,17 +54,26 @@ function Conversation({ conversation, currentUser, handleCurrentChat }) {
         //   <span className="conversatoin_name">{user.username}</span>
         // </div>
         <div className="chatOnline">
-        <div className="chatOnline_wrap">
+         
+        <div className="chatOnline_wrap hover1" onClick={handleCurrentChat}>
           <div className="chatOnline_image_container">
-            <img
-              src="https://th.bing.com/th?id=OIP.4siKIW3oZ4kEo0vkEVQ5hgHaLH&w=204&h=306&c=8&rs=1&qlt=90&o=6&dpr=1.5&pid=3.1&rm=2"
-              className="chatOnline_image"
-              alt=""
-            />
+          <img
+            src={
+              user.profilePicture
+                ? user.profilePicture
+                : "https://th.bing.com/th?id=OIP.4siKIW3oZ4kEo0vkEVQ5hgHaLH&w=204&h=306&c=8&rs=1&qlt=90&o=6&dpr=1.5&pid=3.1&rm=2"
+            }
+            alt="nature"
+            className="chatOnline_image"
+          />
+          {/* {online && 
             <div className="chatOnline_badge"></div>
+          } */}
+            <div className="chatOnline_badge"></div>
+
           </div>
   
-          <div className="chatOnline_name">Kir</div>
+          <div className="chatOnline_name">{user.username}</div>
         </div>
       </div>
       )}

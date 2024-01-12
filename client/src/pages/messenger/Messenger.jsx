@@ -9,93 +9,81 @@ import axios from "axios";
 import { ClockLoader } from "react-spinners";
 import { io } from "socket.io-client";
 import { CloudOff } from "@material-ui/icons";
+import ChatBox from "../../components/chatBox/ChatBox";
 
 function Messenger() {
   const scroolRef = useRef();
+  const socket = useRef(null);
+
+  const { user } = useContext(AuthContext);
 
   const [conversations, setConversations] = useState([]);
   const [currentChat, setCurrentChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
-  const socket = useRef(null);
-  const [arrivalmessages, setArrivalMessages] = useState(null);
-  const [chatOnline,setChatOnline] = useState(null)
-  const [online,setOnline] = useState(false)
-  const { user } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
+  const [arrivalMessages, setArrivalMessages] = useState(null);
+  const [chatOnline, setChatOnline] = useState(null);
 
-  // intializing the socket and get the new messges
+  // Initializing the socket and getting new messages
   useEffect(() => {
-
     socket.current = io("ws://localhost:8001");
 
     socket.current.on("getMessage", (data) => {
-
       setArrivalMessages({
         sender: data.senderId,
         text: data.text,
         createdAt: Date.now(),
       });
-
     });
+
+    return () => {
+      socket.current.disconnect();
+    };
   }, []);
 
-
-  // if arrival messages present then add to messages
+  // If arrival messages are present, add them to messages
   useEffect(() => {
+    arrivalMessages &&
+      // currentChat?.members.includes(arrivalMessages.sender) &&
+      currentChat?.members.some(
+        (member) => member._id === arrivalMessages.sender
+      ) &&
+      setMessages((prev) => [...prev, arrivalMessages]);
+  }, [arrivalMessages, currentChat]);
 
-    arrivalmessages &&
-      currentChat?.members.includes(arrivalmessages.sender) &&
-      setMessages((prev) => [...prev, arrivalmessages]);
-
-  }, [arrivalmessages, currentChat]);
-
-
-  // calling the socket io
+  // Calling the socket io for the users checking
   useEffect(() => {
-
-    // socket.current.on("start", (mess) => {
-    //   console.log(mess);
-    // });
-
     socket.current.emit("addUser", user._id);
-
     socket.current.on("getUsers", (users) => {
-      console.log(users);
+      console.log({ users });
       // setChatOnline(users)
-      
-      // const on =currentChat?.members?.includes(m=> m === (users.find(m=>m.userId ===m)))
+      // const on = currentChat?.members?.includes(m => m === users.find(m => m.userId === m));
       // on && setOnline(true)
-  
     });
-    // console.log(chatOnline)
-    
 
-  }, [user._id,currentChat,chatOnline]);
+    return () => {
+      socket.current.off("getUsers");
+    };
+  }, [user._id, currentChat, chatOnline]);
 
-
-  // getting the all conversationsid
+  // Getting all conversations from the currentuser id
   useEffect(() => {
-
     const getData = async () => {
       try {
         const res = await axios.get(
           "/conversations/getConversation/" + user._id
         );
-        // console.log(res);
         setConversations(res.data);
       } catch (err) {
         console.log({ err });
       }
     };
     getData();
-
   }, [user._id]);
 
-
-  // getting the all messages
+  // Getting all messages for the currentChat id
   useEffect(() => {
-
     const getMessages = async () => {
       try {
         const res = await axios.get("/messages/get/" + currentChat?._id);
@@ -105,11 +93,9 @@ function Messenger() {
       }
     };
     getMessages();
+  }, [currentChat]);
 
-  }, [currentChat ]);
-
-
-  // sent the message to the backend
+  // Send message to the backend
   const handleSendMessage = async (e) => {
     e.preventDefault();
 
@@ -119,9 +105,13 @@ function Messenger() {
       text: text,
     };
 
-    const receiverId = currentChat.members.find(
-      (member) => member !== user._id
+    // const receiverId = currentChat.members.find((member) => member !== user._id);
+    const receiverUser = currentChat.members.find(
+      (member) => member._id !== user._id
     );
+    const receiverId = receiverUser._id;
+    console.log({ receiverUser });
+
     const datas = {
       senderId: user._id,
       receiverId: receiverId,
@@ -134,30 +124,51 @@ function Messenger() {
       setLoading(true);
       setText("");
       const res = await axios.post("/messages/new", inputs);
-      setMessages([...messages, res.data]);
+      setMessages((prev) => [...prev, res.data]);
     } catch (err) {
       console.log(err);
     } finally {
       setLoading(false);
     }
-
   };
 
-  // for scrollin the last message
+  // Scroll to the last message
   useEffect(() => {
-
-    scroolRef.current?.scrollIntoView({ behaviour: "smooth" });
-
+    scroolRef.current?.scrollIntoView({ behavior: "smooth" });
   });
 
-  // console.log({ text });
   console.log({ currentChat });
-
-  // console.log({ messages });
-  console.log({ arrivalmessages });
+  console.log({ messages });
+  console.log({ arrivalMessages });
   console.log({ chatOnline });
 
-  console.log("-----------------------");
+  function groupMessagesByDate(messages) {
+    const groupedMessages = {};
+
+    messages.forEach((message) => {
+      const date = formatDate(message.createdAt);
+
+      if (!groupedMessages[date]) {
+        groupedMessages[date] = [];
+      }
+
+      groupedMessages[date].push(message);
+    });
+
+    return Object.entries(groupedMessages).map(([date, messages]) => ({
+      date,
+      messages,
+    }));
+  }
+
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    return `${month}/${day}/${year}`;
+  }
+  const groupedMessages = groupMessagesByDate(messages);
 
   return (
     <>
@@ -184,12 +195,37 @@ function Messenger() {
             </div>
           </div>
         </div>
+
         <div className="chatBox">
           <div className="chatBoxWrapper">
             {currentChat ? (
               <>
                 <div className="chatBox_Top">
-                  {messages.map((m) => (
+                  {groupedMessages.map((group) => (
+                    <div key={`${group.date}-${Date.now()}`}>
+                      <div className="date-header">{group.date}</div>
+                      {group.messages.map((message) => (
+                        // Ensure that scroolRef is correctly assigned to the last message div
+                        // <div
+                        //   className="div"
+                        //   ref={
+                        //     group.date ===
+                        //     groupedMessages[groupedMessages.length - 1].date
+                        //       ? scroolRef
+                        //       : null
+                        //   }
+                        // >
+                        <div className="div" ref={scroolRef}>
+                          <Messages
+                            key={message._id}
+                            message={message}
+                            own={message.senderId === user._id}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                  {/* {messages.map((m) => (
                     <div className="div" ref={scroolRef}>
                       <Messages
                         key={m._id}
@@ -197,7 +233,7 @@ function Messenger() {
                         own={m.senderId === user._id}
                       />
                     </div>
-                  ))}
+                  ))} */}
                 </div>
                 <div className="chatBox_Bottom">
                   <textarea
@@ -223,10 +259,11 @@ function Messenger() {
             )}
           </div>
         </div>
+
         <div className="chatOnline">
           <div className="chatOnlineWrapper">
-            <ChatOnline chatOnline={chatOnline} currentUser={user}/>
-            </div>
+            <ChatOnline chatOnline={chatOnline} currentUser={user} />
+          </div>
         </div>
       </div>
     </>
@@ -234,3 +271,30 @@ function Messenger() {
 }
 
 export default Messenger;
+
+//   return (
+//     <>
+//       <Topbar />
+//       <div className="messenger">
+//         <ChatMenu
+//           conversations={conversations}
+//           setCurrentChat={setCurrentChat}
+//           user={user}
+//         />
+//         <ChatBox
+//           currentChat={currentChat}
+//           messages={messages}
+//           text={text}
+//           setText={setText}
+//           handleSendMessage={handleSendMessage}
+//           loading={loading}
+//           // scroolRef={scroolRef}
+//           user ={user}
+//         />
+//         <ChatOnline chatOnline={chatOnline} currentUser={user} />
+//       </div>
+//     </>
+//   );
+// }
+
+// export default Messenger;

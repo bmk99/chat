@@ -9,6 +9,7 @@ router.post("/register", async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
     console.log(req.body);
+    
     //create new user
     const newUser = new User({
       username: req.body.username,
@@ -19,6 +20,7 @@ router.post("/register", async (req, res) => {
     //save user and respond
     const user = await newUser.save();
     res.status(200).json(user);
+
   } catch (err) {
     res.status(500).json(err);
   }
