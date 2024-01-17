@@ -24,14 +24,16 @@ function Messenger() {
   const [loading, setLoading] = useState(false);
   const [arrivalMessages, setArrivalMessages] = useState(null);
   const [chatOnline, setChatOnline] = useState(null);
+  const [online, setOnline] = useState(null);
 
   // Initializing the socket and getting new messages
   useEffect(() => {
     socket.current = io("ws://localhost:8001");
 
     socket.current.on("getMessage", (data) => {
+      console.log(data && data);
       setArrivalMessages({
-        sender: data.senderId,
+        senderId: data.senderUser,
         text: data.text,
         createdAt: Date.now(),
       });
@@ -47,7 +49,7 @@ function Messenger() {
     arrivalMessages &&
       // currentChat?.members.includes(arrivalMessages.sender) &&
       currentChat?.members.some(
-        (member) => member._id === arrivalMessages.sender
+        (member) => member._id === arrivalMessages.senderId._id
       ) &&
       setMessages((prev) => [...prev, arrivalMessages]);
   }, [arrivalMessages, currentChat]);
@@ -57,9 +59,14 @@ function Messenger() {
     socket.current.emit("addUser", user._id);
     socket.current.on("getUsers", (users) => {
       console.log({ users });
-      // setChatOnline(users)
-      // const on = currentChat?.members?.includes(m => m === users.find(m => m.userId === m));
-      // on && setOnline(true)
+
+      //  for users either thery are online or not
+      // setChatOnline(users);
+      // const on = currentChat?.members?.includes(
+      //   (m) => m._id === users.find((m) => m.userId === m)
+      // );
+      // const on = currentChat?.members?.some(member=> member._id === users.find((user => user.userId === )) )
+      // on && setOnline(true);
     });
 
     return () => {
@@ -110,10 +117,11 @@ function Messenger() {
       (member) => member._id !== user._id
     );
     const receiverId = receiverUser._id;
-    console.log({ receiverUser });
+    // console.log({ receiverUser });
 
     const datas = {
-      senderId: user._id,
+      // senderId: user._id,
+      senderUser: user,
       receiverId: receiverId,
       text: text,
     };
@@ -124,6 +132,7 @@ function Messenger() {
       setLoading(true);
       setText("");
       const res = await axios.post("/messages/new", inputs);
+      // console.log(res.data)
       setMessages((prev) => [...prev, res.data]);
     } catch (err) {
       console.log(err);
@@ -137,11 +146,12 @@ function Messenger() {
     scroolRef.current?.scrollIntoView({ behavior: "smooth" });
   });
 
-  console.log({ currentChat });
-  console.log({ messages });
-  console.log({ arrivalMessages });
+  // console.log({ currentChat });
+  // console.log({ messages });
+  // console.log({ arrivalMessages });
   console.log({ chatOnline });
 
+  // for group by data
   function groupMessagesByDate(messages) {
     const groupedMessages = {};
 
@@ -169,6 +179,14 @@ function Messenger() {
     return `${month}/${day}/${year}`;
   }
   const groupedMessages = groupMessagesByDate(messages);
+  console.log(groupedMessages);
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage(e);
+    }
+  };
 
   return (
     <>
@@ -188,7 +206,7 @@ function Messenger() {
                     key={c._id}
                     conversation={c}
                     currentUser={user}
-                    // online={online}
+                    online={online}
                   />
                 </div>
               ))}
@@ -201,9 +219,15 @@ function Messenger() {
             {currentChat ? (
               <>
                 <div className="chatBox_Top">
+                  {/* {online && (
+                    <>
+                      <span>online</span>
+                    </>
+                  )} */}
                   {groupedMessages.map((group) => (
                     <div key={`${group.date}-${Date.now()}`}>
                       <div className="date-header">{group.date}</div>
+
                       {group.messages.map((message) => (
                         // Ensure that scroolRef is correctly assigned to the last message div
                         // <div
@@ -219,7 +243,7 @@ function Messenger() {
                           <Messages
                             key={message._id}
                             message={message}
-                            own={message.senderId === user._id}
+                            own={message.senderId._id === user._id}
                           />
                         </div>
                       ))}
@@ -236,6 +260,16 @@ function Messenger() {
                   ))} */}
                 </div>
                 <div className="chatBox_Bottom">
+                  {/* <textarea
+                    name="text"
+                    value={text}
+                    id=""
+                    placeholder="send the text"
+                    className="chatBoxBottom_input"
+                    onChange={(e) => setText(e.target.value)}
+                    cols="20"
+                    rows="2"
+                  ></textarea> */}
                   <textarea
                     name="text"
                     value={text}
@@ -243,6 +277,7 @@ function Messenger() {
                     placeholder="send the text"
                     className="chatBoxBottom_input"
                     onChange={(e) => setText(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     cols="20"
                     rows="2"
                   ></textarea>
@@ -262,7 +297,7 @@ function Messenger() {
 
         <div className="chatOnline">
           <div className="chatOnlineWrapper">
-            <ChatOnline chatOnline={chatOnline} currentUser={user} />
+            {/* <ChatOnline chatOnline={chatOnline} currentUser={user} /> */}
           </div>
         </div>
       </div>

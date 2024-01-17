@@ -8,42 +8,7 @@ const messages = [
         "updatedAt": "2024-01-11T05:19:54.794Z",
         "__v": 0
     },
-    {
-        "_id": "659f96057389623a4ce8043d",
-        "conversationId": "659f769e24c9394ecfe6dc49",
-        "senderId": "659e60202e69baca6e997257",
-        "text": "sadfasf",
-        "createdAt": "2024-02-11T07:17:25.123Z",
-        "updatedAt": "2024-01-11T07:17:25.123Z",
-        "__v": 0
-    },
-    {
-        "_id": "659f96097389623a4ce8043f",
-        "conversationId": "659f769e24c9394ecfe6dc49",
-        "senderId": "659e600b2e69baca6e997255",
-        "text": "sdafasfasdf",
-        "createdAt": "2024-01-11T07:17:29.841Z",
-        "updatedAt": "2024-01-11T07:17:29.841Z",
-        "__v": 0
-    },
-    {
-        "_id": "659f960f7389623a4ce80441",
-        "conversationId": "659f769e24c9394ecfe6dc49",
-        "senderId": "659e60202e69baca6e997257",
-        "text": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "createdAt": "2024-01-11T07:17:35.106Z",
-        "updatedAt": "2024-01-11T07:17:35.106Z",
-        "__v": 0
-    },
-    {
-        "_id": "659f96947389623a4ce80461",
-        "conversationId": "659f769e24c9394ecfe6dc49",
-        "senderId": "659e600b2e69baca6e997255",
-        "text": "heyy\n",
-        "createdAt": "2024-01-11T07:19:48.590Z",
-        "updatedAt": "2024-01-11T07:19:48.590Z",
-        "__v": 0
-    },
+   
     {
         "_id": "659f969c7389623a4ce80463",
         "conversationId": "659f769e24c9394ecfe6dc49",
